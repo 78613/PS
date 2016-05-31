@@ -1,6 +1,6 @@
 ﻿
 
-Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process
+#Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process
 
 
 
@@ -82,6 +82,7 @@ function Main {
     }
     #>
 
+    <#
     Echo "Control"
     Get-NetAdapterStatistics -Name "vEthernet (VMS-Primary) 2"
 
@@ -93,6 +94,16 @@ function Main {
 
     
     #if ($var.PSObject.Properties['']
+    #>
+    
+    Echo Control
+    Get-NetAdapterStatistics -Name Secondary
+    Echo Test
+    #Get-NetAdapterStatistics -Name Secondaryx 2>&1 | Out-File -Encoding ascii -Append deleteme.txt
+    $command = "Get-NetAdapterStatistics -Name ""Secondary"""
+    #Invoke-Expression $Command 2>&1 | Out-File -Encoding ascii -Append $Output
+    $ret = Invoke-Expression $command 2>&1 | Out-File -Encoding ascii -Append deleteme.txt
+    Echo $ret
 
 } #Main()
 
