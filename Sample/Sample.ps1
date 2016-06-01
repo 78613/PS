@@ -50,9 +50,55 @@ function test {
         }
  }
 
+
+ function EnvDestroy {
+    [CmdletBinding()]
+    Param(
+        [parameter(Mandatory=$true)] [String] $OutDir
+    )
+    If (Test-Path $OutDir) {
+        Remove-Item $OutDir -Recurse
+    }
+}
+
+function EnvCreate {
+    [CmdletBinding()]
+    Param(
+        [parameter(Mandatory=$true)] [String] $OutDir
+    )
+    New-Item -ItemType directory -Path $OutDir | Out-Null
+}
+
+function PerfCounters {
+    [CmdletBinding()]
+    Param(
+        [parameter(Mandatory=$true)] [String] $OutDir
+    )
+
+    [String []] $names = "Hyper-V",
+                         "Intel",
+                         "mellanox",
+                         "chelsio"
+    ForEach($make in $names) {
+        $file = "PerfCounter_$make.txt"
+        $out  = (Join-Path -Path $dir -ChildPath $file)
+        $cmd  = "Get-Counter -Counter (Get-Counter -ListSet *$make*).paths -ErrorAction SilentlyContinue | Format-List -Property *"
+        ExecCommand -Command ($cmd) -Output $out
+    }
+
+
+    #$cnts = (Get-Counter -ListSet *$make*).paths
+    #Get-Counter -Counter $cnts -ErrorAction SilentlyContinue | out-file -Encoding ascii $out
+    #Get-Counter -Counter (Get-Counter -ListSet *$make*).paths -ErrorAction SilentlyContinue | Format-List -Property *
+}
+
+
 function Main {
     Clear
-    #$dir="C:\Users\ocardona\Desktop\Test"
+    $baseDir="C:\Users\ocardona\Desktop\Test\"
+
+    EnvDestroy -OutDir $baseDir
+    EnvCreate  -OutDir $baseDir
     
     #Remove-Item $dir -Recurse
     #New-Item -ItemType directory -Path $dir
@@ -96,6 +142,7 @@ function Main {
     #if ($var.PSObject.Properties['']
     #>
     
+    <#
     Echo Control
     Get-NetAdapterStatistics -Name Secondary
     Echo Test
@@ -104,6 +151,7 @@ function Main {
     #Invoke-Expression $Command 2>&1 | Out-File -Encoding ascii -Append $Output
     $ret = Invoke-Expression $command 2>&1 | Out-File -Encoding ascii -Append deleteme.txt
     Echo $ret
+    #>
 
 } #Main()
 

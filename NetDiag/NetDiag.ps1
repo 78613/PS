@@ -1,4 +1,6 @@
 ﻿
+# Execute this command on the PS windows to enable execution
+#Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process
 
 function ExecCommand {
     [CmdletBinding()]
@@ -25,12 +27,7 @@ function ExecCommand {
     Invoke-Expression $Command | Out-File -Encoding ascii -Append $Output
 } 
 
-<#
-function PerfCounters {
-    $Cnts = (Get-Counter -ListSet *mellanox*).paths
-    Get-Counter -Counter $Cnts -ErrorAction SilentlyContinue | out-file -Encoding ascii $RootDir\MLXstats.txt
-}
-#>
+
 
 function NetAdapterDetail {
     [CmdletBinding()]
@@ -389,6 +386,24 @@ function VMSwitchSummary {
     }
 }
 
+function PerfCounters {
+    [CmdletBinding()]
+    Param(
+        [parameter(Mandatory=$true)] [String] $OutDir
+    )
+
+    [String []] $names = "Hyper-V",
+                         "Intel",
+                         "Mellanox",
+                         "Chelsio"
+    ForEach($make in $names) {
+        $file = "PerfCounter_$make.txt"
+        $out  = (Join-Path -Path $OutDir -ChildPath $file)
+        $cmd  = "Get-Counter -Counter (Get-Counter -ListSet *$make*).paths -ErrorAction SilentlyContinue | Format-List -Property *"
+        ExecCommand -Command ($cmd) -Output $out
+    }
+}
+
 function EnvDestroy {
     [CmdletBinding()]
     Param(
@@ -408,16 +423,18 @@ function EnvCreate {
 }
 
 function Main {
-    $baseDir="C:\Users\ocardona\Desktop\Test\"
+    $baseDir="C:\Users\LocalAdminUser\Desktop\Test\"
 
     EnvDestroy -OutDir $baseDir
     EnvCreate  -OutDir $baseDir
 
-    NetAdapterSummary -OutDir $basedir
-    NetAdapterDetail  -OutDir $basedir
+    PerfCounters -OutDir $baseDir
+
+    NetAdapterSummary -OutDir $baseDir
+    NetAdapterDetail  -OutDir $baseDir
     
-    VMSwitchSummary -OutDir $basedir
-    VMSwitchDetail  -OutDir $basedir
+    VMSwitchSummary -OutDir $baseDir
+    VMSwitchDetail  -OutDir $baseDir
     #https://technet.microsoft.com/en-us/library/hh848499.aspx
 
     #VMNetworkAdapterSummary
