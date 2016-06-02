@@ -428,6 +428,10 @@ function Main {
     EnvDestroy -OutDir $baseDir
     EnvCreate  -OutDir $baseDir
 
+
+    # Add try catch logic for inconsistent PS cmdlets implementation on -Named inputs
+    # https://www.leaseweb.com/labs/2014/01/print-full-exception-powershell-trycatch-block-using-format-list/
+
     PerfCounters -OutDir $baseDir
 
     NetAdapterSummary -OutDir $baseDir
