@@ -2,6 +2,9 @@
 # Execute this command on the PS windows to enable execution
 #Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process
 
+
+
+
 function ExecCommand {
     [CmdletBinding()]
     Param(
@@ -109,15 +112,29 @@ function NetAdapterDetail {
         }
 
         #<##### FIXME!!!!! - Detect properties for all below
-        <#
+
+
         $file = "Get-NetAdapterStatistics.txt"
         $out  = (Join-Path -Path $dir -ChildPath $file)
         [String []] $cmds = "Get-NetAdapterStatistics -Name ""$name""",
                             "Get-NetAdapterStatistics -Name ""$name"" | Format-List",
                             "Get-NetAdapterStatistics -Name ""$name"" | Format-List *"
+
+        [String []] $cmds = "Get-NetAdapterStatistics -Name ""$name"""
         ForEach($cmd in $cmds) {
-            ExecCommand -Command ($cmd) -Output $out
+            try {
+                ExecCommand -Command ($cmd) -Output $out
+            }
+            catch [Exception] {
+                #Write-Host -ForegroundColor Red "Caught an exception while dealing with VlanID, please reset it back to original settings manually"
+                #Write-Host -ForegroundColor Red "Error Message:" $_.Exception.Message
+                #Write-Host -ForegroundColor Red "Failed Item:" $_.Exception.ItemName
+                Write-Host "Hello world"
+                echo $_.Exception.GetType().FullName, $_.Exception.Message
+            }
         }
+
+        <#    
 
         # Execute command list
         $file = "Get-NetAdapterEncapsulatedPacketTaskOffload.txt"
@@ -404,6 +421,7 @@ function PerfCounters {
     }
 }
 
+<#
 function Environment {
     [CmdletBinding()]
     Param(
@@ -412,29 +430,12 @@ function Environment {
 
     $file = "Environment.txt"
     $out  = (Join-Path -Path $dir -ChildPath $file)
-    [String []] $cmds = "Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion""
+    [String []] $cmds = "Get-ItemProperty -Path ""HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion"""
     ForEach($cmd in $cmds) {
         ExecCommand -Command ($cmd) -Output $out
     }
 }
-
-function EnvDestroy {
-    [CmdletBinding()]
-    Param(
-        [parameter(Mandatory=$true)] [String] $OutDir
-    )
-    If (Test-Path $OutDir) {
-        Remove-Item $OutDir -Recurse
-    }
-}
-
-function EnvCreate {
-    [CmdletBinding()]
-    Param(
-        [parameter(Mandatory=$true)] [String] $OutDir
-    )
-    New-Item -ItemType directory -Path $OutDir | Out-Null
-}
+#>
 
 function Main {
     $baseDir="C:\Users\LocalAdminUser\Desktop\Test\"
@@ -446,14 +447,14 @@ function Main {
     # Add try catch logic for inconsistent PS cmdlets implementation on -Named inputs
     # https://www.leaseweb.com/labs/2014/01/print-full-exception-powershell-trycatch-block-using-format-list/
 
-    Environment  -OutDir $baseDir
-    PerfCounters -OutDir $baseDir
+    #Environment  -OutDir $baseDir
+    #PerfCounters -OutDir $baseDir
 
-    NetAdapterSummary -OutDir $baseDir
+    #NetAdapterSummary -OutDir $baseDir
     NetAdapterDetail  -OutDir $baseDir
     
-    VMSwitchSummary -OutDir $baseDir
-    VMSwitchDetail  -OutDir $baseDir
+    #VMSwitchSummary -OutDir $baseDir
+    #VMSwitchDetail  -OutDir $baseDir
     #https://technet.microsoft.com/en-us/library/hh848499.aspx
 
     #VMNetworkAdapterSummary
@@ -467,6 +468,7 @@ function Main {
     #samples
     #https://github.com/Microsoft/SDN/blob/master/SDNExpress/scripts/SDNExpress.ps1
 
+    
 }
 
 Main #Entry Point
