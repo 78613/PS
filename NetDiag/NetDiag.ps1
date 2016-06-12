@@ -404,6 +404,20 @@ function PerfCounters {
     }
 }
 
+function Environment {
+    [CmdletBinding()]
+    Param(
+        [parameter(Mandatory=$true)] [String] $OutDir
+    )
+
+    $file = "Environment.txt"
+    $out  = (Join-Path -Path $dir -ChildPath $file)
+    [String []] $cmds = "Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion"
+    ForEach($cmd in $cmds) {
+        ExecCommand -Command ($cmd) -Output $out
+    }
+}
+
 function EnvDestroy {
     [CmdletBinding()]
     Param(
@@ -432,6 +446,7 @@ function Main {
     # Add try catch logic for inconsistent PS cmdlets implementation on -Named inputs
     # https://www.leaseweb.com/labs/2014/01/print-full-exception-powershell-trycatch-block-using-format-list/
 
+    Environment  -OutDir $baseDir
     PerfCounters -OutDir $baseDir
 
     NetAdapterSummary -OutDir $baseDir
@@ -448,6 +463,10 @@ function Main {
     #VMNetworkAdapterVlanSummary
     #VMNetworkAdapterVlanDetail
     #https://technet.microsoft.com/en-us/library/hh848516.aspx
+
+    #samples
+    #https://github.com/Microsoft/SDN/blob/master/SDNExpress/scripts/SDNExpress.ps1
+
 }
 
 Main #Entry Point
