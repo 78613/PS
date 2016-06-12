@@ -412,7 +412,7 @@ function Environment {
 
     $file = "Environment.txt"
     $out  = (Join-Path -Path $dir -ChildPath $file)
-    [String []] $cmds = "Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion"
+    [String []] $cmds = "Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion""
     ForEach($cmd in $cmds) {
         ExecCommand -Command ($cmd) -Output $out
     }
