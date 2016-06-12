@@ -467,7 +467,7 @@ function Main {
 
     #samples
     #https://github.com/Microsoft/SDN/blob/master/SDNExpress/scripts/SDNExpress.ps1
-
+    #https://learn-powershell.net/2014/02/04/using-powershell-parameter-validation-to-make-your-day-easier/
     
 }
 

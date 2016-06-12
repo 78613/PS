@@ -1,4 +1,4 @@
-﻿clear
+﻿
 
 #region Script Diagnostic Functions
 function Get-LineNumber {
@@ -17,36 +17,40 @@ function Get-FunctionName {
 function TraceErr {
     [CmdletBinding()]
     Param(
-         [parameter(Mandatory=$true)]  [Int]    $Line
-        ,[parameter(Mandatory=$true)]  [String] $File
-        ,[parameter(Mandatory=$true)]  [String] $Func
-        ,[parameter(Mandatory=$false)] [String] $Message
+         [parameter(Mandatory=$true)]  [ValidateRange(1, [UInt32]::MaxValue)] [UInt32] $Line
+        ,[parameter(Mandatory=$true)]  [ValidateNotNullOrEmpty()]             [String] $File
+        ,[parameter(Mandatory=$true)]  [ValidateNotNullOrEmpty()]             [String] $Func
+        ,[parameter(Mandatory=$false)] [ValidateNotNullOrEmpty()]             [String] $Message
     )
     Write-Host -ForegroundColor Red $([String] $Line + ": " + $File + ": " + $Func + "()  " + $Message)
 }
+#export-modulemember -function TraceErr
 
 function TraceWarn {
     [CmdletBinding()]
     Param(
-         [parameter(Mandatory=$true)]  [Int]    $Line
-        ,[parameter(Mandatory=$true)]  [String] $File
-        ,[parameter(Mandatory=$true)]  [String] $Func
-        ,[parameter(Mandatory=$false)] [String] $Message
+         [parameter(Mandatory=$true)]  [ValidateRange(1, [UInt32]::MaxValue)] [UInt32] $Line
+        ,[parameter(Mandatory=$true)]  [ValidateNotNullOrEmpty()]             [String] $File
+        ,[parameter(Mandatory=$true)]  [ValidateNotNullOrEmpty()]             [String] $Func
+        ,[parameter(Mandatory=$false)] [ValidateNotNullOrEmpty()]             [String] $Message
     )
     Write-Host -ForegroundColor Yellow $([String] $Line + ": " + $File + ": " + $Func + "()  " + $Message)
 }
+#export-modulemember -function TraceWarn
 
 function TraceDbg {
     [CmdletBinding()]
     Param(
-         [parameter(Mandatory=$true)]  [Int]    $Line
-        ,[parameter(Mandatory=$true)]  [String] $File
-        ,[parameter(Mandatory=$true)]  [String] $Func
-        ,[parameter(Mandatory=$false)] [String] $Message
+         [parameter(Mandatory=$true)]  [ValidateRange(1, [UInt32]::MaxValue)] [UInt32] $Line
+        ,[parameter(Mandatory=$true)]  [ValidateNotNullOrEmpty()]             [String] $File
+        ,[parameter(Mandatory=$true)]  [ValidateNotNullOrEmpty()]             [String] $Func
+        ,[parameter(Mandatory=$false)] [ValidateNotNullOrEmpty()]             [String] $Message
     )
     Write-Host -ForegroundColor Green $([String] $Line + ": " + $File + ": " + $Func + "()  " + $Message)
 }
+#export-modulemember -function TraceDbg
 #endregion
+
 
 
 function Test {   
@@ -57,11 +61,12 @@ function Test {
     Write-Host $((Get-LineNumber) + ": " + (Get-Filename) + ": " + (Get-FunctionName) +"()")
 
     Echo "==== Desired API"
-    TraceDbg (Get-LineNumber) (Get-Filename) (Get-FunctionName)  "Debug message"
+    TraceDbg  (Get-LineNumber) (Get-Filename) (Get-FunctionName) "Debug message"
     TraceWarn (Get-LineNumber) (Get-Filename) (Get-FunctionName) "Warning message"
-    TraceErr (Get-LineNumber) (Get-Filename) (Get-FunctionName)  "Error message"
+    TraceErr  (Get-LineNumber) (Get-Filename) (Get-FunctionName) "Error message"
 }
 
 function Main {
+    clear
     Test
 } Main #Entry Point
