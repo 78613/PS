@@ -1,4 +1,5 @@
-﻿
+﻿clear
+
 # Execute this command on the PS windows to enable execution
 #Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process
 
@@ -119,22 +120,9 @@ function NetAdapterDetail {
         [String []] $cmds = "Get-NetAdapterStatistics -Name ""$name""",
                             "Get-NetAdapterStatistics -Name ""$name"" | Format-List",
                             "Get-NetAdapterStatistics -Name ""$name"" | Format-List *"
-
-        [String []] $cmds = "Get-NetAdapterStatistics -Name ""$name"""
         ForEach($cmd in $cmds) {
-            try {
-                ExecCommand -Command ($cmd) -Output $out
-            }
-            catch [Exception] {
-                #Write-Host -ForegroundColor Red "Caught an exception while dealing with VlanID, please reset it back to original settings manually"
-                #Write-Host -ForegroundColor Red "Error Message:" $_.Exception.Message
-                #Write-Host -ForegroundColor Red "Failed Item:" $_.Exception.ItemName
-                Write-Host "Hello world"
-                echo $_.Exception.GetType().FullName, $_.Exception.Message
-            }
-        }
-
-        <#    
+            ExecCommand -Command ($cmd) -Output $out
+        }   
 
         # Execute command list
         $file = "Get-NetAdapterEncapsulatedPacketTaskOffload.txt"
@@ -194,6 +182,15 @@ function NetAdapterDetail {
             ExecCommand -Command ($cmd) -Output $out
         }
 
+        $file = "Get-NetAdapterPacketDirect.txt"
+        $out  = (Join-Path -Path $dir -ChildPath $file)
+        [String []] $cmds = "Get-NetAdapterPacketDirect -Name ""$name""",
+                            "Get-NetAdapterPacketDirect -Name ""$name"" | Format-List",
+                            "Get-NetAdapterPacketDirect -Name ""$name"" | Format-List *"
+        ForEach($cmd in $cmds) {
+            ExecCommand -Command ($cmd) -Output $out
+        }
+
         $file = "Get-NetAdapterRsc.txt"
         $out  = (Join-Path -Path $dir -ChildPath $file)
         [String []] $cmds = "Get-NetAdapterRsc -Name ""$name""",
@@ -247,7 +244,6 @@ function NetAdapterDetail {
         ForEach($cmd in $cmds) {
             ExecCommand -Command ($cmd) -Output $out
         }
-        #>
     }
 }
 
@@ -421,7 +417,7 @@ function PerfCounters {
     }
 }
 
-<#
+
 function Environment {
     [CmdletBinding()]
     Param(
@@ -429,32 +425,49 @@ function Environment {
     )
 
     $file = "Environment.txt"
-    $out  = (Join-Path -Path $dir -ChildPath $file)
+    $out  = (Join-Path -Path $OutDir -ChildPath $file)
     [String []] $cmds = "Get-ItemProperty -Path ""HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion"""
     ForEach($cmd in $cmds) {
         ExecCommand -Command ($cmd) -Output $out
     }
 }
-#>
+
+function EnvDestroy {
+    [CmdletBinding()]
+    Param(
+        [parameter(Mandatory=$true)] [String] $OutDir
+    )
+    If (Test-Path $OutDir) {
+        Remove-Item $OutDir -Recurse
+    }
+}
+
+function EnvCreate {
+    [CmdletBinding()]
+    Param(
+        [parameter(Mandatory=$true)] [String] $OutDir
+    )
+    New-Item -ItemType directory -Path $OutDir | Out-Null
+}
 
 function Main {
-    $baseDir="C:\Users\LocalAdminUser\Desktop\Test\"
+    $user    = [Environment]::UserName
+    $baseDir = "C:\Users\$user\Desktop\Test\"
 
     EnvDestroy -OutDir $baseDir
     EnvCreate  -OutDir $baseDir
-
-
+    
     # Add try catch logic for inconsistent PS cmdlets implementation on -Named inputs
     # https://www.leaseweb.com/labs/2014/01/print-full-exception-powershell-trycatch-block-using-format-list/
 
-    #Environment  -OutDir $baseDir
-    #PerfCounters -OutDir $baseDir
+    Environment  -OutDir $baseDir
+    PerfCounters -OutDir $baseDir
 
-    #NetAdapterSummary -OutDir $baseDir
+    NetAdapterSummary -OutDir $baseDir
     NetAdapterDetail  -OutDir $baseDir
     
-    #VMSwitchSummary -OutDir $baseDir
-    #VMSwitchDetail  -OutDir $baseDir
+    VMSwitchSummary -OutDir $baseDir
+    VMSwitchDetail  -OutDir $baseDir
     #https://technet.microsoft.com/en-us/library/hh848499.aspx
 
     #VMNetworkAdapterSummary
@@ -468,6 +481,10 @@ function Main {
     #samples
     #https://github.com/Microsoft/SDN/blob/master/SDNExpress/scripts/SDNExpress.ps1
     #https://learn-powershell.net/2014/02/04/using-powershell-parameter-validation-to-make-your-day-easier/
+    #http://www.powershellmagazine.com/2013/12/09/secure-parameter-validation-in-powershell/
+    #https://msdn.microsoft.com/en-us/library/dd878340(v=vs.85).aspx
+
+
     
 }
 

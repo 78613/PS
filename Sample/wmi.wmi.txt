@@ -1,0 +1,4 @@
+﻿    $action = New-ScheduledTaskAction -Execute "PowerShell.exe" -Argument " Set-VMSwitchTeam -Name SetSwitch -LoadBalancingAlgorithm HyperVPort"
+    $trigger = New-ScheduledTaskTrigger -AtStartup
+    $settings = New-ScheduledTaskSettingsSet -Priority 5
+    Register-ScheduledTask -TaskName "TeamSwitchSettings" -Action $action -Trigger $trigger -Settings $settings -User SYSTEM -RunLevel Highest | Out-Null

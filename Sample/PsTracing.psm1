@@ -14,31 +14,6 @@ function Get-FunctionName {
     (Get-Variable MyInvocation -Scope 1).Value.MyCommand.Name
 }
 
-
-<# 
- .Synopsis
-  Trace
-
- .Description
-  Displays a trace message to terminal with Line, File, Function, and optional Message.
-
- .Parameter Line
-  Line Number
-
- .Parameter File
-  Filename
-
- .Parameter Func
-  Function Name
-
- .Example
-    # trace with message
-    TraceDbg  (Get-LineNumber) (Get-Filename) (Get-FunctionName) "Debug message"
-
- .Example
-    # trace without message
-    TraceDbg  (Get-LineNumber) (Get-Filename) (Get-FunctionName)
-#>
 function TraceErr {
     [CmdletBinding()]
     Param(
@@ -49,7 +24,7 @@ function TraceErr {
     )
     Write-Host -ForegroundColor Red $([String] $Line + ": " + $File + ": " + $Func + "()  " + $Message)
 }
-#export-modulemember -function TraceErr
+export-modulemember -function TraceErr
 
 function TraceWarn {
     [CmdletBinding()]
@@ -61,7 +36,7 @@ function TraceWarn {
     )
     Write-Host -ForegroundColor Yellow $([String] $Line + ": " + $File + ": " + $Func + "()  " + $Message)
 }
-#export-modulemember -function TraceWarn
+export-modulemember -function TraceWarn
 
 function TraceDbg {
     [CmdletBinding()]
@@ -73,7 +48,7 @@ function TraceDbg {
     )
     Write-Host -ForegroundColor Green $([String] $Line + ": " + $File + ": " + $Func + "()  " + $Message)
 }
-#export-modulemember -function TraceDbg
+export-modulemember -function TraceDbg
 #endregion
 
 
