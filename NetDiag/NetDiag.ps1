@@ -1,5 +1,4 @@
-﻿clear
-
+﻿
 # Execute this command on the PS windows to enable execution
 #Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process
 
@@ -56,9 +55,9 @@ function NetAdapterDetail {
         $file = "Get-NetAdapter.txt"
         $out  = (Join-Path -Path $dir -ChildPath $file)
         [String []] $cmds = "Get-NetAdapter -InterfaceIndex $idx",
-                            "Get-NetAdapter -InterfaceIndex $idx | Format-List",
                             "Get-NetAdapter -InterfaceIndex $idx | Format-Table -View Driver",
-                            "Get-NetAdapter -InterfaceIndex $idx | Format-List *"
+                            "Get-NetAdapter -InterfaceIndex $idx | Format-List  -Property *",
+                            "Get-NetAdapter -InterfaceIndex $idx | Format-Table -Property * -AutoSize | Out-String -Width $columns"
         ForEach($cmd in $cmds) {
             ExecCommand -Command ($cmd) -Output $out
         }
@@ -67,8 +66,8 @@ function NetAdapterDetail {
         $file = "Get-NetAdapterAdvancedProperty.txt"
         $out  = (Join-Path -Path $dir -ChildPath $file)
         [String []] $cmds = "Get-NetAdapterAdvancedProperty -Name ""$name"" -AllProperties -IncludeHidden",
-                            "Get-NetAdapterAdvancedProperty -Name ""$name"" | Format-List",
-                            "Get-NetAdapterAdvancedProperty -Name ""$name"" | Format-List *"
+                            "Get-NetAdapterAdvancedProperty -Name ""$name"" -AllProperties -IncludeHidden | Format-List  -Property *",
+                            "Get-NetAdapterAdvancedProperty -Name ""$name"" -AllProperties -IncludeHidden | Format-Table -Property * -AutoSize | Out-String -Width $columns"
         ForEach($cmd in $cmds) {
             ExecCommand -Command ($cmd) -Output $out
         }
@@ -77,8 +76,8 @@ function NetAdapterDetail {
         $file = "Get-NetAdapterBinding.txt"
         $out  = (Join-Path -Path $dir -ChildPath $file)
         [String []] $cmds = "Get-NetAdapterBinding -Name ""$name"" -AllBindings",
-                            "Get-NetAdapterBinding -Name ""$name"" | Format-List",
-                            "Get-NetAdapterBinding -Name ""$name"" | Format-List *"
+                            "Get-NetAdapterBinding -Name ""$name"" | Format-List  -Property *",
+                            "Get-NetAdapterBinding -Name ""$name"" | Format-Table -Property * -AutoSize | Out-String -Width $columns"
         ForEach($cmd in $cmds) {
             ExecCommand -Command ($cmd) -Output $out
         }
@@ -87,8 +86,8 @@ function NetAdapterDetail {
         $file = "Get-NetAdapterChecksumOffload.txt"
         $out  = (Join-Path -Path $dir -ChildPath $file)
         [String []] $cmds = "Get-NetAdapterChecksumOffload -Name ""$name""",
-                            "Get-NetAdapterChecksumOffload -Name ""$name"" | Format-List",
-                            "Get-NetAdapterChecksumOffload -Name ""$name"" | Format-List *"
+                            "Get-NetAdapterChecksumOffload -Name ""$name"" | Format-List  -Property *",
+                            "Get-NetAdapterChecksumOffload -Name ""$name"" | Format-Table -Property * -AutoSize | Out-String -Width $columns"
         ForEach($cmd in $cmds) {
             ExecCommand -Command ($cmd) -Output $out
         }
@@ -451,6 +450,9 @@ function EnvCreate {
 }
 
 function Main {
+    clear
+    $columns = 4096
+
     $user    = [Environment]::UserName
     $baseDir = "C:\Users\$user\Desktop\Test\"
 

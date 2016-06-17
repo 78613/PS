@@ -1,0 +1,3 @@
+
+Unlimited width command.
+Get-NetAdapterAdvancedProperty -NAme Ethernet | Format-Table  -Property * -AutoSize | Out-String -Width 4096 
