@@ -2,15 +2,12 @@
 # Execute this command on the PS windows to enable execution
 #Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process
 
-function ExecCommand {
+function ExecCommand2 {
     [CmdletBinding()]
     Param(
-        [parameter(Mandatory=$true)] [String] $Command, 
-        [parameter(Mandatory=$true)] [String] $Output
+        [parameter(Mandatory=$true)] [ValidateNotNullOrEmpty()] [String] $Command, 
+        [parameter(Mandatory=$true)] [ValidateNotNullOrEmpty()] [String] $Output
     )
-
-    #Write-Output "Command = $Command " 
-    #Write-Output "Output  = $Output "
 
     # Mirror Prompt info
     $prompt = $env:username + " @ " + $env:computername + ":"
@@ -21,11 +18,62 @@ function ExecCommand {
     Write-Output $cmdMirror | out-file -Encoding ascii -Append $Output
 
     # Execute Command and redirect to file.  Useful so users know what to run..
-    #Invoke-Expression $Command | Out-File -Encoding ascii -Append $Output
-    
-    #Invoke-Expression $Command | Tee-Object -file $Output
     Invoke-Expression $Command | Out-File -Encoding ascii -Append $Output
 } 
+
+function TestCommand {
+    [CmdletBinding()]
+    Param(
+        [parameter(Mandatory=$true)] [ValidateNotNullOrEmpty()] [String] $Command
+    )
+
+    Try {
+        # pre-execution cleanup
+        $error.clear()
+
+        # Instrument the validate command for silent output
+        #$tmp = "$Command -erroraction 'silentlycontinue' | Out-Null"
+        $tmp = "$Command | Out-Null"
+
+        # Redirect all error output to $Null to encompass all possible errors
+        #Write-Host $tmp -ForegroundColor Yellow
+        Invoke-Expression $tmp 2> $Null
+        if ($error -ne $null) {
+            throw "Error: $error[0]" 
+        }
+
+        # This is only reachable in success case
+        Write-Host -ForegroundColor Green "$Command"
+        $script:Err = 0
+    }Catch {
+        Write-Warning "UNSUPPORTED: $Command"
+        $script:Err = -1
+    }Finally {
+        # post-execution cleanup to avoid false positives
+        $error.clear()
+    }
+}
+
+# Powershell cmdlets have inconsistent implementations in command error handling.  This
+# function performs a validation of the command prior to formal execution and logs said
+# commands in a file suffixed with Not-Supported.txt.
+function ExecCommand {
+    [CmdletBinding()]
+    Param(
+        [parameter(Mandatory=$true)] [ValidateNotNullOrEmpty()] [String] $Command,
+        [parameter(Mandatory=$true)] [ValidateNotNullOrEmpty()] [String] $Output
+    )
+    
+    # Use temp output to reflect the failed command, otherwise execute the command.
+    $out = $Output
+    TestCommand -Command ($cmd)
+    if ($script:Err -ne 0) {
+        $out = $out.Replace(".txt",".UNSUPPORTED.txt")
+        Write-Output "$Command" | Out-File -Encoding ascii -Append $out
+    }else {
+        ExecCommand2 -Command ($Command) -Output $out
+    }
+}
 
 function NetAdapterDetail {
     [CmdletBinding()]
@@ -46,6 +94,9 @@ function NetAdapterDetail {
         $dir  = (Join-Path -Path $OutDir -ChildPath ("$nictype." + $idx + ".$name"))
         New-Item -ItemType directory -Path $dir | Out-Null
         
+        Write-Output "Processing: $name"
+        Write-Output "----------------------------------------------"
+
         # Execute command list
         $file = "Get-NetAdapter.txt"
         $out  = (Join-Path -Path $dir -ChildPath $file)
@@ -118,6 +169,7 @@ function NetAdapterDetail {
             ExecCommand -Command ($cmd) -Output $out
         }   
 
+
         # Execute command list
         $file = "Get-NetAdapterEncapsulatedPacketTaskOffload.txt"
         $out  = (Join-Path -Path $dir -ChildPath $file)
@@ -127,7 +179,7 @@ function NetAdapterDetail {
         ForEach($cmd in $cmds) {
             ExecCommand -Command ($cmd) -Output $out
         }
-        
+
         # Execute command list
         $file = "Get-NetAdapterHardwareInfo.txt"
         $out  = (Join-Path -Path $dir -ChildPath $file)
@@ -247,17 +299,17 @@ function NetAdapterSummary {
         [parameter(Mandatory=$true)] [String] $OutDir
     )
 
-    $file = "NetAdapter.txt"
+    $file = "Summary.txt"
     $out  = (Join-Path -Path $OutDir -ChildPath $file)
 
     # Build the command list
     [String []] $cmds = "Get-NetAdapter",
                         "Get-VMSwitch",
                         "Get-VMNetworkAdapter *",
-                        "Get-NetIPConfiguration"
+                        "Get-NetIPConfiguration *"
     # Execute each command
     ForEach($cmd in $cmds) {
-        ExecCommand -Command $cmd -Output $out
+        ExecCommand -Command ($cmd) -Output $out
     }
 }
 
@@ -275,6 +327,9 @@ function VMSwitchDetail {
         $dir  = (Join-Path -Path $OutDir -ChildPath ("vms.$type.$name"))
         New-Item -ItemType directory -Path $dir | Out-Null
         
+        Write-Output "Processing: $name"
+        Write-Output "----------------------------------------------"
+
         # Execute command list
         $file = "Get-VMSwitch.txt"
         $out  = (Join-Path -Path $dir -ChildPath $file)
@@ -296,7 +351,9 @@ function VMSwitchDetail {
             ExecCommand -Command ($cmd) -Output $out
         }
 
-        <#        
+                
+        <#
+        #Get-VMSwitchExtensionPortData -ComputerName $env:computername *
         # Execute command list
         $file = "Get-VMSwitchExtensionPortData.txt"
         $out  = (Join-Path -Path $dir -ChildPath $file)
@@ -307,7 +364,9 @@ function VMSwitchDetail {
             ExecCommand -Command ($cmd) -Output $out
         }
         #>
-
+        
+        
+        # Iterate through all ports in a vSwitch and dump command output
         # Execute command list
         $file = "Get-VMSwitchExtensionSwitchData.txt"
         $out  = (Join-Path -Path $dir -ChildPath $file)
@@ -317,6 +376,7 @@ function VMSwitchDetail {
         ForEach($cmd in $cmds) {
             ExecCommand -Command ($cmd) -Output $out
         }
+        
 
         # Execute command list
         $file = "Get-VMSwitchExtensionSwitchFeature.txt"
