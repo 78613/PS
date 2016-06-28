@@ -455,6 +455,19 @@ function VMSwitchSummary {
 }
 
 
+function LbfoSummary {
+    [CmdletBinding()]
+    Param(
+        [parameter(Mandatory=$true)] [String] $OutDir
+    )
+
+    #Get-NetLbfoTeam
+    #Get-NetLbfoTeamMember
+    #Get-NetLbfoTeamNic   
+    #Get-VMSwitchTeam
+    #Get-VMSwitch | fl NetAdapterDescriptions
+}
+
 function PerfCounters {
     [CmdletBinding()]
     Param(
@@ -538,8 +551,12 @@ function Main {
     NetAdapterDetail  -OutDir $baseDir
     
     VMSwitchSummary -OutDir $baseDir
-    VMSwitchDetail  -OutDir $baseDir
+    VMSwitchDetail  -OutDir $baseDir  
     #https://technet.microsoft.com/en-us/library/hh848499.aspx
+
+    #LLbfoSummary -OutDir $baseDir
+    #LbfoDetail -OutDir $baseDir
+
 
     #VMNetworkAdapterSummary
     #VMNetworkAdapterDetail
