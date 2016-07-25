@@ -2,7 +2,9 @@
 # Execute this command on the PS windows to enable execution
 #Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process
 
-function ExecCommand2 {
+
+
+function ExecCommandPrivate {
     [CmdletBinding()]
     Param(
         [parameter(Mandatory=$true)] [ValidateNotNullOrEmpty()] [String] $Command, 
@@ -20,6 +22,16 @@ function ExecCommand2 {
     # Execute Command and redirect to file.  Useful so users know what to run..
     Invoke-Expression $Command | Out-File -Encoding ascii -Append $Output
 } 
+
+function ExecCommandTrusted {
+    [CmdletBinding()]
+    Param(
+        [parameter(Mandatory=$true)] [ValidateNotNullOrEmpty()] [String] $Command, 
+        [parameter(Mandatory=$true)] [ValidateNotNullOrEmpty()] [String] $Output
+    )
+    Write-Host -ForegroundColor Green "$Command"
+    ExecCommandPrivate -Command ($Command) -Output $Output
+}
 
 function TestCommand {
     [CmdletBinding()]
@@ -71,7 +83,7 @@ function ExecCommand {
         $out = $out.Replace(".txt",".UNSUPPORTED.txt")
         Write-Output "$Command" | Out-File -Encoding ascii -Append $out
     }else {
-        ExecCommand2 -Command ($Command) -Output $out
+        ExecCommandPrivate -Command ($Command) -Output $out
     }
 }
 
@@ -293,6 +305,82 @@ function NetAdapterDetail {
     }
 }
 
+function IPinfoFoo {
+    [CmdletBinding()]
+    Param(
+        [parameter(Mandatory=$true)] [String] $OutDir
+    )
+    
+    $file = "Get-NetCompartment.txt"
+    $out  = (Join-Path -Path $OutDir -ChildPath $file)
+    [String []] $cmds = "Get-NetCompartment",
+                        "Get-NetCompartment | Format-List -Property *"
+    ForEach($cmd in $cmds) {
+        ExecCommand -Command ($cmd) -Output $out
+    }
+
+    $file = "Get-NetIpConfiguration.txt"
+    $out  = (Join-Path -Path $OutDir -ChildPath $file)
+    [String []] $cmds = "Get-NetIPConfiguration -all -verbose"
+    ForEach($cmd in $cmds) {
+        ExecCommandTrusted -Command ($cmd) -Output $out
+    }
+
+    $file = "Get-NetIpAddress.txt"
+    $out  = (Join-Path -Path $OutDir -ChildPath $file)
+    [String []] $cmds = "Get-NetIPAddress –AddressFamily IPv4",
+                        "Get-NetIPAddress –AddressFamily IPv6",
+                        "Get-NetIPAddress | Sort-Object -Property InterfaceIndex | Format-Table",
+                        "Get-NetIPAddress | Where-Object -FilterScript { $_.ValidLifetime -Lt ([TimeSpan]::FromDays(1)) }",
+                        "Get-NetIPAddress | Where-Object -FilterScript { $_.ValidLifetime -Eq ([TimeSpan]::MaxValue) }"
+    ForEach($cmd in $cmds) {
+        ExecCommand -Command ($cmd) -Output $out
+    }
+
+    $file = "Get-NetIpInterface.txt"
+    $out  = (Join-Path -Path $OutDir -ChildPath $file)
+    [String []] $cmds = "Get-NetIPInterface -AddressFamily IPv4",
+                        "Get-NetIPInterface -AddressFamily IPv6",
+                        "Get-NetIPInterface | Sort-Object –Property InterfaceIndex | Format-Table"
+    ForEach($cmd in $cmds) {
+        ExecCommand -Command ($cmd) -Output $out
+    }
+
+    $file = "Get-NetIPv4Protocol.txt"
+    $out  = (Join-Path -Path $OutDir -ChildPath $file)
+    [String []] $cmds = "Get-NetIPv4Protocol",
+                        "Get-NetIPv4Protocol | Format-List –Property *"
+    ForEach($cmd in $cmds) {
+        ExecCommand -Command ($cmd) -Output $out
+    }
+
+    $file = "Get-NetIPv6Protocol.txt"
+    $out  = (Join-Path -Path $OutDir -ChildPath $file)
+    [String []] $cmds = "Get-NetIPv6Protocol",
+                        "Get-NetIPv6Protocol | Format-List –Property *"
+    ForEach($cmd in $cmds) {
+        ExecCommand -Command ($cmd) -Output $out
+    }
+
+    $file = "Get-NetNeighbor.txt"
+    $out  = (Join-Path -Path $OutDir -ChildPath $file)
+    [String []] $cmds = "Get-NetNeighbor",
+                        "Get-NetNeighbor | Format-List –Property *",
+                        "Get-NetNeighbor –AddressFamily IPv4",
+                        "Get-NetNeighbor –AddressFamily IPv6",
+                        "Get-NetNeighbor –State Reachable | Get-NetAdapter"
+    ForEach($cmd in $cmds) {
+        ExecCommand -Command ($cmd) -Output $out
+    }
+
+    $file = "Get-NetOffloadGlobalSetting.txt"
+    $out  = (Join-Path -Path $OutDir -ChildPath $file)
+    [String []] $cmds = "Get-NetOffloadGlobalSetting"
+    ForEach($cmd in $cmds) {
+        ExecCommand -Command ($cmd) -Output $out
+    }
+}
+
 function NetAdapterSummary {
     [CmdletBinding()]
     Param(
@@ -305,11 +393,11 @@ function NetAdapterSummary {
     # Build the command list
     [String []] $cmds = "Get-NetAdapter",
                         "Get-VMSwitch",
-                        "Get-VMNetworkAdapter *",
-                        "Get-NetIPConfiguration *"
+                        "Get-VMNetworkAdapter *"
+                        "net statistics workstation"
     # Execute each command
     ForEach($cmd in $cmds) {
-        ExecCommand -Command ($cmd) -Output $out
+        ExecCommandTrusted -Command ($cmd) -Output $out
     }
 }
 
@@ -507,7 +595,11 @@ function Environment {
 
     $file = "Environment.txt"
     $out  = (Join-Path -Path $OutDir -ChildPath $file)
-    [String []] $cmds = "Get-ItemProperty -Path ""HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion"""
+    [String []] $cmds = "Get-ItemProperty -Path ""HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion""",
+                        "date",
+                        #"Get-WinEvent -ProviderName eventlog | Where-Object {$_.Id -eq 6005 -or $_.Id -eq 6006}",
+                        "wmic os get lastbootuptime",
+                        "systeminfo"
     ForEach($cmd in $cmds) {
         ExecCommand -Command ($cmd) -Output $out
     }
@@ -541,22 +633,27 @@ function Main {
     EnvDestroy -OutDir $baseDir
     EnvCreate  -OutDir $baseDir
     
+    
+
+
     # Add try catch logic for inconsistent PS cmdlets implementation on -Named inputs
     # https://www.leaseweb.com/labs/2014/01/print-full-exception-powershell-trycatch-block-using-format-list/
 
     Environment  -OutDir $baseDir
-    PerfCounters -OutDir $baseDir
+    #PerfCounters -OutDir $baseDir
 
-    NetAdapterSummary -OutDir $baseDir
-    NetAdapterDetail  -OutDir $baseDir
+    #NetAdapterSummary -OutDir $baseDir
+    #NetAdapterDetail  -OutDir $baseDir
+
     
-    VMSwitchSummary -OutDir $baseDir
-    VMSwitchDetail  -OutDir $baseDir  
+    #VMSwitchSummary -OutDir $baseDir
+    #VMSwitchDetail  -OutDir $baseDir  
     #https://technet.microsoft.com/en-us/library/hh848499.aspx
 
     #LLbfoSummary -OutDir $baseDir
     #LbfoDetail -OutDir $baseDir
 
+    #IPinfoFoo -OutDir $baseDir
 
     #VMNetworkAdapterSummary
     #VMNetworkAdapterDetail

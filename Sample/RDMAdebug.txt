@@ -1,0 +1,5 @@
+•	Get-NetAdapter | fl * > NetAdapter.txt
+•	Get-NetAdapterBinding | fl * > NetAdapterBinding.txt
+•	Get-NetAdapterRdma | fl * > NetAdapterRdma.txt
+•	Get-VmNetworkAdapter -all | fl * > VmNetworkAdapter.txt
+•	Get-VMSwitch | fl * > VmSwitch.txt
