@@ -416,7 +416,7 @@ function VMSwitchDetail {
         New-Item -ItemType directory -Path $dir | Out-Null
         
         Write-Output "Processing: $name"
-        Write-Output "----------------------------------------------"
+        Write-Output "----------------------------------------------"      
 
         # Execute command list
         $file = "Get-VMSwitch.txt"
@@ -542,6 +542,24 @@ function VMSwitchSummary {
     }
 }
 
+function VMSummary {
+    [CmdletBinding()]
+    Param(
+        [parameter(Mandatory=$true)] [String] $OutDir
+    )
+
+    $file = "VM.txt"
+    $out  = (Join-Path -Path $OutDir -ChildPath $file)
+
+    # Build the command list
+    [String []] $cmds = "Get-VM",
+                        "Get-VM | Format-List  -Property *",
+                        "Get-VM | Format-Table -Property * -AutoSize | Out-String -Width $columns"
+    ForEach($cmd in $cmds) {
+        ExecCommand -Command $cmd -Output $out
+    }
+}
+
 
 function LbfoSummary {
     [CmdletBinding()]
@@ -562,6 +580,8 @@ function PerfCounters {
         [parameter(Mandatory=$true)] [String] $OutDir
     )
 
+    # FIXME: Unecessary loop here... 
+    # FIX it later....
     foreach($nic in Get-NetAdapter) {
         $name = $nic.Name
         $desc = $nic.InterfaceDescription
@@ -577,7 +597,7 @@ function PerfCounters {
         }elseif ($desc -like '*Qlogic*') {
             $make = "Qlogic"
         }
-
+        
         if ($make) {
             $file = "PerfCounter_$make.txt"
             $out  = (Join-Path -Path $OutDir -ChildPath $file)
@@ -585,6 +605,18 @@ function PerfCounters {
             ExecCommand -Command ($cmd) -Output $out
         }
     }
+
+    $make = "VmSwitch"
+    $file = "PerfCounter_$make.txt"
+    $out  = (Join-Path -Path $OutDir -ChildPath $file)
+    $cmd  = "Get-Counter -Counter (Get-Counter -ListSet *'Hyper-V Virtual Switch'*).paths -ErrorAction SilentlyContinue | Format-List -Property *"
+    ExecCommandTrusted -Command ($cmd) -Output $out
+
+    $make = "hNIC"
+    $file = "PerfCounter_$make.txt"
+    $out  = (Join-Path -Path $OutDir -ChildPath $file)
+    $cmd  = "Get-Counter -Counter (Get-Counter -ListSet *'Hyper-V Virtual Network'*).paths -ErrorAction SilentlyContinue | Format-List -Property *"
+    ExecCommandTrusted -Command ($cmd) -Output $out
 }
 
 function Environment {
@@ -623,6 +655,22 @@ function EnvCreate {
     New-Item -ItemType directory -Path $OutDir | Out-Null
 }
 
+function VMNetworkAdapterSummary {
+    [CmdletBinding()]
+    Param(
+        [parameter(Mandatory=$true)] [String] $OutDir
+    )
+
+    $file = "VMNetworkAdapterSummary.txt"
+    $out  = (Join-Path -Path $OutDir -ChildPath $file)
+    [String []] $cmds = "Get-VMNetworkAdapter -All",
+                        "Get-VMNetworkAdapter -All | Format-List  -Property *",
+                        "Get-VMNetworkAdapter -All | Format-Table -Property * -AutoSize | Out-String -Width $columns"
+    ForEach($cmd in $cmds) {
+        ExecCommand -Command $cmd -Output $out
+    }
+}
+
 function Main {
     clear
     $columns = 4096
@@ -639,15 +687,19 @@ function Main {
     # Add try catch logic for inconsistent PS cmdlets implementation on -Named inputs
     # https://www.leaseweb.com/labs/2014/01/print-full-exception-powershell-trycatch-block-using-format-list/
 
-    Environment  -OutDir $baseDir
-    #PerfCounters -OutDir $baseDir
+    #Environment       -OutDir $baseDir
+    #PerfCounters      -OutDir $baseDir
 
     #NetAdapterSummary -OutDir $baseDir
     #NetAdapterDetail  -OutDir $baseDir
 
-    
-    #VMSwitchSummary -OutDir $baseDir
-    #VMSwitchDetail  -OutDir $baseDir  
+    #VMSummary         -OutDir $baseDir
+
+    #VMSwitchSummary   -OutDir $baseDir
+    #VMSwitchDetail    -OutDir $baseDir  
+
+    VMNetworkAdapterSummary -OutDir $baseDir
+    #VMNetworkAdapterDetail  -OutDir $baseDir
     #https://technet.microsoft.com/en-us/library/hh848499.aspx
 
     #LLbfoSummary -OutDir $baseDir
