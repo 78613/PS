@@ -29,7 +29,7 @@ function ExecCommandTrusted {
         [parameter(Mandatory=$true)] [ValidateNotNullOrEmpty()] [String] $Command, 
         [parameter(Mandatory=$true)] [ValidateNotNullOrEmpty()] [String] $Output
     )
-    Write-Host -ForegroundColor Green "$Command"
+    Write-Host -ForegroundColor Cyan "$Command"
     ExecCommandPrivate -Command ($Command) -Output $Output
 }
 
@@ -542,6 +542,108 @@ function VMSwitchSummary {
     }
 }
 
+function VMNetworkAdapterSummary {
+    [CmdletBinding()]
+    Param(
+        [parameter(Mandatory=$true)] [String] $OutDir
+    )
+
+    $file = "VMNetworkAdapterSummary.txt"
+    $out  = (Join-Path -Path $OutDir -ChildPath $file)
+    [String []] $cmds = "Get-VMNetworkAdapter -All",
+                        "Get-VMNetworkAdapter -All | Format-List  -Property *",
+                        "Get-VMNetworkAdapter -All | Format-Table -Property * -AutoSize | Out-String -Width $columns"
+    ForEach($cmd in $cmds) {
+        ExecCommand -Command $cmd -Output $out
+    }
+}
+
+function VMNetworkAdapterDetail {
+    [CmdletBinding()]
+    Param(
+        [parameter(Mandatory=$true)] [String] $OutDir
+    )
+
+    ForEach($vm in Get-VM) {
+        $vmname = $vm.name
+        $dir    = (Join-Path -Path $OutDir -ChildPath ("VM.$vmname"))
+        New-Item -ItemType directory -Path $dir | Out-Null
+          
+        Write-Output "Processing: VM.$vmname.$nicname"
+        Write-Output "--------------------------------------"
+
+        # Execute command list
+        $file = "Get-VMNetworkAdapterAcl.txt"
+        $out  = (Join-Path -Path $dir -ChildPath $file)
+        [String []] $cmds = "Get-VMNetworkAdapterAcl -VMName $vmname | Out-String -Width $columns",
+                            "Get-VMNetworkAdapterAcl -VMName $vmname | Format-List  -Property *",
+                            "Get-VMNetworkAdapterAcl -VMName $vmname | Format-Table -Property * -AutoSize | Out-String -Width $columns"
+        ForEach($cmd in $cmds) {
+            ExecCommand -Command ($cmd) -Output $out
+        }
+
+        # Execute command list
+        $file = "Get-VMNetworkAdapterExtendedAcl.txt"
+        $out  = (Join-Path -Path $dir -ChildPath $file)
+        [String []] $cmds = "Get-VMNetworkAdapterExtendedAcl -VMName $vmname | Out-String -Width $columns",
+                            "Get-VMNetworkAdapterExtendedAcl -VMName $vmname | Format-List  -Property *",
+                            "Get-VMNetworkAdapterExtendedAcl -VMName $vmname | Format-Table -Property * -AutoSize | Out-String -Width $columns"
+        ForEach($cmd in $cmds) {
+            ExecCommand -Command ($cmd) -Output $out
+        }
+
+        # Execute command list
+        $file = "Get-VMNetworkAdapterFailoverConfiguration.txt"
+        $out  = (Join-Path -Path $dir -ChildPath $file)
+        [String []] $cmds = "Get-VMNetworkAdapterFailoverConfiguration -VMName $vmname | Out-String -Width $columns",
+                            "Get-VMNetworkAdapterFailoverConfiguration -VMName $vmname | Format-List  -Property *",
+                            "Get-VMNetworkAdapterFailoverConfiguration -VMName $vmname | Format-Table -Property * -AutoSize | Out-String -Width $columns"
+        ForEach($cmd in $cmds) {
+            ExecCommand -Command ($cmd) -Output $out
+        }
+
+        # Execute command list
+        $file = "Get-VMNetworkAdapterIsolation.txt"
+        $out  = (Join-Path -Path $dir -ChildPath $file)
+        [String []] $cmds = "Get-VMNetworkAdapterIsolation -VMName $vmname | Out-String -Width $columns",
+                            "Get-VMNetworkAdapterIsolation -VMName $vmname | Format-List  -Property *",
+                            "Get-VMNetworkAdapterIsolation -VMName $vmname | Format-Table -Property * -AutoSize | Out-String -Width $columns"
+        ForEach($cmd in $cmds) {
+            ExecCommand -Command ($cmd) -Output $out
+        }
+
+        # Execute command list
+        $file = "Get-VMNetworkAdapterRoutingDomainMapping.txt"
+        $out  = (Join-Path -Path $dir -ChildPath $file)
+        [String []] $cmds = "Get-VMNetworkAdapterRoutingDomainMapping -VMName $vmname | Out-String -Width $columns",
+                            "Get-VMNetworkAdapterRoutingDomainMapping -VMName $vmname | Format-List  -Property *",
+                            "Get-VMNetworkAdapterRoutingDomainMapping -VMName $vmname | Format-Table -Property * -AutoSize | Out-String -Width $columns"
+        ForEach($cmd in $cmds) {
+            ExecCommand -Command ($cmd) -Output $out
+        }
+
+        # Execute command list
+        $file = "Get-VMNetworkAdapterTeamMapping.txt"
+        $out  = (Join-Path -Path $dir -ChildPath $file)
+        [String []] $cmds = "Get-VMNetworkAdapterTeamMapping -VMName $vmname | Out-String -Width $columns",
+                            "Get-VMNetworkAdapterTeamMapping -VMName $vmname | Format-List  -Property *",
+                            "Get-VMNetworkAdapterTeamMapping -VMName $vmname | Format-Table -Property * -AutoSize | Out-String -Width $columns"
+        ForEach($cmd in $cmds) {
+            ExecCommand -Command ($cmd) -Output $out
+        }
+
+        # Execute command list
+        $file = "Get-VMNetworkAdapterVlan.txt"
+        $out  = (Join-Path -Path $dir -ChildPath $file)
+        [String []] $cmds = "Get-VMNetworkAdapterVlan -VMName $vmname | Out-String -Width $columns",
+                            "Get-VMNetworkAdapterVlan -VMName $vmname | Format-List  -Property *",
+                            "Get-VMNetworkAdapterVlan -VMName $vmname | Format-Table -Property * -AutoSize | Out-String -Width $columns"
+        ForEach($cmd in $cmds) {
+            ExecCommand -Command ($cmd) -Output $out
+        }
+    }
+}
+
 function VMSummary {
     [CmdletBinding()]
     Param(
@@ -567,6 +669,25 @@ function LbfoSummary {
         [parameter(Mandatory=$true)] [String] $OutDir
     )
 
+    $file = "LBFO.txt"
+    $out  = (Join-Path -Path $OutDir -ChildPath $file)
+
+    # Build the command list
+    [String []] $cmds = "Get-NetLbfoTeam –Name *",
+                        "Get-NetLbfoTeam –Name * | Format-List  -Property *",
+                        "Get-NetLbfoTeam –Name * | Format-Table -Property * -AutoSize | Out-String -Width $columns"
+    ForEach($cmd in $cmds) {
+        ExecCommand -Command $cmd -Output $out
+    }
+}
+
+function LbfoDetail {
+    [CmdletBinding()]
+    Param(
+        [parameter(Mandatory=$true)] [String] $OutDir
+    )
+
+    #To Do....
     #Get-NetLbfoTeam
     #Get-NetLbfoTeamMember
     #Get-NetLbfoTeamNic   
@@ -580,43 +701,54 @@ function PerfCounters {
         [parameter(Mandatory=$true)] [String] $OutDir
     )
 
-    # FIXME: Unecessary loop here... 
-    # FIX it later....
-    foreach($nic in Get-NetAdapter) {
-        $name = $nic.Name
-        $desc = $nic.InterfaceDescription
-
-        #Write-Output $desc
-        $make = ""
-        if ($desc -like '*Chelsio*') {
-            $make = "Chelsio"
-        }elseif ($desc -like '*Mellanox*') {
-            $make = "Mellanox"
-        }elseif ($desc -like '*Intel*') {
-            $make = "Intel"    
-        }elseif ($desc -like '*Qlogic*') {
-            $make = "Qlogic"
-        }
-        
-        if ($make) {
-            $file = "PerfCounter_$make.txt"
-            $out  = (Join-Path -Path $OutDir -ChildPath $file)
-            $cmd  = "Get-Counter -Counter (Get-Counter -ListSet *$make*).paths -ErrorAction SilentlyContinue | Format-List -Property *"
-            ExecCommand -Command ($cmd) -Output $out
-        }
-    }
-
+    
     $make = "VmSwitch"
     $file = "PerfCounter_$make.txt"
     $out  = (Join-Path -Path $OutDir -ChildPath $file)
     $cmd  = "Get-Counter -Counter (Get-Counter -ListSet *'Hyper-V Virtual Switch'*).paths -ErrorAction SilentlyContinue | Format-List -Property *"
-    ExecCommandTrusted -Command ($cmd) -Output $out
+    ExecCommand -Command ($cmd) -Output $out
 
     $make = "hNIC"
     $file = "PerfCounter_$make.txt"
     $out  = (Join-Path -Path $OutDir -ChildPath $file)
     $cmd  = "Get-Counter -Counter (Get-Counter -ListSet *'Hyper-V Virtual Network'*).paths -ErrorAction SilentlyContinue | Format-List -Property *"
+    ExecCommand -Command ($cmd) -Output $out
+
+    $make = "Mellanox"
+    $file = "PerfCounter_$make.txt"
+    $out  = (Join-Path -Path $OutDir -ChildPath $file)
+    $cmd  = "Get-Counter -Counter (Get-Counter -ListSet *Mellanox*).paths -ErrorAction SilentlyContinue | Format-List -Property *"
     ExecCommandTrusted -Command ($cmd) -Output $out
+
+    $make = "Intel"
+    $file = "PerfCounter_$make.txt"
+    $out  = (Join-Path -Path $OutDir -ChildPath $file)
+    $cmd  = "Get-Counter -Counter (Get-Counter -ListSet *Intel*).paths -ErrorAction SilentlyContinue | Format-List -Property *"
+    ExecCommand -Command ($cmd) -Output $out
+
+    $make = "Chelsio"
+    $file = "PerfCounter_$make.txt"
+    $out  = (Join-Path -Path $OutDir -ChildPath $file)
+    $cmd  = "Get-Counter -Counter (Get-Counter -ListSet *Chelsio*).paths -ErrorAction SilentlyContinue | Format-List -Property *"
+    ExecCommand -Command ($cmd) -Output $out
+
+    $make = "Qlogic"
+    $file = "PerfCounter_$make.txt"
+    $out  = (Join-Path -Path $OutDir -ChildPath $file)
+    $cmd  = "Get-Counter -Counter (Get-Counter -ListSet *Qlogic*).paths -ErrorAction SilentlyContinue | Format-List -Property *"
+    ExecCommand -Command ($cmd) -Output $out
+
+    $make = "Broadcom"
+    $file = "PerfCounter_$make.txt"
+    $out  = (Join-Path -Path $OutDir -ChildPath $file)
+    $cmd  = "Get-Counter -Counter (Get-Counter -ListSet *Broadcom*).paths -ErrorAction SilentlyContinue | Format-List -Property *"
+    ExecCommand -Command ($cmd) -Output $out
+
+    $make = "Emulex"
+    $file = "PerfCounter_$make.txt"
+    $out  = (Join-Path -Path $OutDir -ChildPath $file)
+    $cmd  = "Get-Counter -Counter (Get-Counter -ListSet *Emulex*).paths -ErrorAction SilentlyContinue | Format-List -Property *"
+    ExecCommand -Command ($cmd) -Output $out
 }
 
 function Environment {
@@ -655,65 +787,60 @@ function EnvCreate {
     New-Item -ItemType directory -Path $OutDir | Out-Null
 }
 
-function VMNetworkAdapterSummary {
+
+function CreateZip {
     [CmdletBinding()]
     Param(
-        [parameter(Mandatory=$true)] [String] $OutDir
+        [parameter(Mandatory=$true)] [String] $Src,
+        [parameter(Mandatory=$true)] [String] $Dest,
+        [parameter(Mandatory=$true)] [String] $ZipName
     )
 
-    $file = "VMNetworkAdapterSummary.txt"
-    $out  = (Join-Path -Path $OutDir -ChildPath $file)
-    [String []] $cmds = "Get-VMNetworkAdapter -All",
-                        "Get-VMNetworkAdapter -All | Format-List  -Property *",
-                        "Get-VMNetworkAdapter -All | Format-Table -Property * -AutoSize | Out-String -Width $columns"
-    ForEach($cmd in $cmds) {
-        ExecCommand -Command $cmd -Output $out
+    $timestamp = $(get-date -f yyyy.MM.dd_hh.mm.ss)
+    $out       = "$Dest" + "$ZipName" + "-$timestamp" + ".zip"
+
+    If(Test-path $out) {
+        Remove-item $out
     }
+
+    add-Type -assembly "system.io.compression.filesystem"
+    [io.compression.zipfile]::CreateFromDirectory($Src, $out)
 }
+
 
 function Main {
     clear
     $columns = 4096
 
-    $user    = [Environment]::UserName
-    $baseDir = "C:\Users\$user\Desktop\Test\"
+    $user        = [Environment]::UserName
+    $workDirName = "msdbg." + $env:computername
+    $baseDir     = "C:\Users\$user\Desktop\"
+    $workDir     = "$baseDir" + "$workDirName"
 
-    EnvDestroy -OutDir $baseDir
-    EnvCreate  -OutDir $baseDir
+    EnvDestroy -OutDir $workDir
+    EnvCreate  -OutDir $workDir
     
-    
-
-
     # Add try catch logic for inconsistent PS cmdlets implementation on -Named inputs
     # https://www.leaseweb.com/labs/2014/01/print-full-exception-powershell-trycatch-block-using-format-list/
 
-    #Environment       -OutDir $baseDir
-    #PerfCounters      -OutDir $baseDir
+    Environment       -OutDir $workDir
+    PerfCounters      -OutDir $workDir
 
-    #NetAdapterSummary -OutDir $baseDir
-    #NetAdapterDetail  -OutDir $baseDir
+    NetAdapterSummary -OutDir $workDir
+    NetAdapterDetail  -OutDir $workDir
 
-    #VMSummary         -OutDir $baseDir
+    VMSummary         -OutDir $workDir
 
-    #VMSwitchSummary   -OutDir $baseDir
-    #VMSwitchDetail    -OutDir $baseDir  
+    VMSwitchSummary   -OutDir $workDir
+    VMSwitchDetail    -OutDir $workDir  
 
-    VMNetworkAdapterSummary -OutDir $baseDir
-    #VMNetworkAdapterDetail  -OutDir $baseDir
-    #https://technet.microsoft.com/en-us/library/hh848499.aspx
+    VMNetworkAdapterSummary -OutDir $workDir
+    VMNetworkAdapterDetail  -OutDir $workDir
 
-    #LLbfoSummary -OutDir $baseDir
-    #LbfoDetail -OutDir $baseDir
+    LbfoSummary  -OutDir $workDir
+    LbfoDetail   -OutDir $workDir
 
-    #IPinfoFoo -OutDir $baseDir
-
-    #VMNetworkAdapterSummary
-    #VMNetworkAdapterDetail
-    #https://technet.microsoft.com/en-us/library/hh848516.aspx
-
-    #VMNetworkAdapterVlanSummary
-    #VMNetworkAdapterVlanDetail
-    #https://technet.microsoft.com/en-us/library/hh848516.aspx
+    #IPinfoFoo -OutDir $workDir
 
     #samples
     #https://github.com/Microsoft/SDN/blob/master/SDNExpress/scripts/SDNExpress.ps1
@@ -721,8 +848,8 @@ function Main {
     #http://www.powershellmagazine.com/2013/12/09/secure-parameter-validation-in-powershell/
     #https://msdn.microsoft.com/en-us/library/dd878340(v=vs.85).aspx
 
-
-    
+    CreateZip -Src $workDir -Dest $baseDir -ZipName $workDirName
 }
 
 Main #Entry Point
+

@@ -496,7 +496,7 @@ function VMSwitchDetail {
             ExecCommand -Command ($cmd) -Output $out
         }
 
-        <#
+        
         # Execute command list
         $file = "Get-VMSwitchTeam.txt"
         $out  = (Join-Path -Path $dir -ChildPath $file)
@@ -506,7 +506,7 @@ function VMSwitchDetail {
         ForEach($cmd in $cmds) {
             ExecCommand -Command ($cmd) -Output $out
         }
-        #>
+        
 
         # Execute command list
         $file = "Get-VMSystemSwitchExtension.txt"
@@ -721,52 +721,55 @@ function PerfCounters {
         [parameter(Mandatory=$true)] [String] $OutDir
     )
 
+    $vmname = $vm.name
+    $dir    = (Join-Path -Path $OutDir -ChildPath ("PerfMon"))
+    New-Item -ItemType directory -Path $dir | Out-Null
     
     $make = "VmSwitch"
     $file = "PerfCounter_$make.txt"
-    $out  = (Join-Path -Path $OutDir -ChildPath $file)
+    $out  = (Join-Path -Path $dir -ChildPath $file)
     $cmd  = "Get-Counter -Counter (Get-Counter -ListSet *'Hyper-V Virtual Switch'*).paths -ErrorAction SilentlyContinue | Format-List -Property *"
     ExecCommand -Command ($cmd) -Output $out
 
     $make = "hNIC"
     $file = "PerfCounter_$make.txt"
-    $out  = (Join-Path -Path $OutDir -ChildPath $file)
+    $out  = (Join-Path -Path $dir -ChildPath $file)
     $cmd  = "Get-Counter -Counter (Get-Counter -ListSet *'Hyper-V Virtual Network'*).paths -ErrorAction SilentlyContinue | Format-List -Property *"
     ExecCommand -Command ($cmd) -Output $out
 
     $make = "Mellanox"
     $file = "PerfCounter_$make.txt"
-    $out  = (Join-Path -Path $OutDir -ChildPath $file)
+    $out  = (Join-Path -Path $dir -ChildPath $file)
     $cmd  = "Get-Counter -Counter (Get-Counter -ListSet *Mellanox*).paths -ErrorAction SilentlyContinue | Format-List -Property *"
     ExecCommandTrusted -Command ($cmd) -Output $out
 
     $make = "Intel"
     $file = "PerfCounter_$make.txt"
-    $out  = (Join-Path -Path $OutDir -ChildPath $file)
+    $out  = (Join-Path -Path $dir -ChildPath $file)
     $cmd  = "Get-Counter -Counter (Get-Counter -ListSet *Intel*).paths -ErrorAction SilentlyContinue | Format-List -Property *"
     ExecCommand -Command ($cmd) -Output $out
 
     $make = "Chelsio"
     $file = "PerfCounter_$make.txt"
-    $out  = (Join-Path -Path $OutDir -ChildPath $file)
+    $out  = (Join-Path -Path $dir -ChildPath $file)
     $cmd  = "Get-Counter -Counter (Get-Counter -ListSet *Chelsio*).paths -ErrorAction SilentlyContinue | Format-List -Property *"
     ExecCommand -Command ($cmd) -Output $out
 
     $make = "Qlogic"
     $file = "PerfCounter_$make.txt"
-    $out  = (Join-Path -Path $OutDir -ChildPath $file)
+    $out  = (Join-Path -Path $dir -ChildPath $file)
     $cmd  = "Get-Counter -Counter (Get-Counter -ListSet *Qlogic*).paths -ErrorAction SilentlyContinue | Format-List -Property *"
     ExecCommand -Command ($cmd) -Output $out
 
     $make = "Broadcom"
     $file = "PerfCounter_$make.txt"
-    $out  = (Join-Path -Path $OutDir -ChildPath $file)
+    $out  = (Join-Path -Path $dir -ChildPath $file)
     $cmd  = "Get-Counter -Counter (Get-Counter -ListSet *Broadcom*).paths -ErrorAction SilentlyContinue | Format-List -Property *"
     ExecCommand -Command ($cmd) -Output $out
 
     $make = "Emulex"
     $file = "PerfCounter_$make.txt"
-    $out  = (Join-Path -Path $OutDir -ChildPath $file)
+    $out  = (Join-Path -Path $dir -ChildPath $file)
     $cmd  = "Get-Counter -Counter (Get-Counter -ListSet *Emulex*).paths -ErrorAction SilentlyContinue | Format-List -Property *"
     ExecCommand -Command ($cmd) -Output $out
 }
