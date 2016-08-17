@@ -117,16 +117,18 @@ function NetAdapterDetail {
         # Create dir for each NIC
         $idx  = $nic.IfIndex
         $name = $nic.Name
+        $desc = $nic.InterfaceDescription
 
         if ((Get-NetAdapter -IfIndex $idx).DriverFileName -eq "vmswitch.sys") {
             $nictype = "hNic"
         } else {
             $nictype = "pNic"
         }
-        $dir  = (Join-Path -Path $OutDir -ChildPath ("$nictype." + $idx + ".$name"))
+        $title = "$nictype." + $idx + ".$name" + ".$desc"
+        $dir   = (Join-Path -Path $OutDir -ChildPath ("$title"))
         New-Item -ItemType directory -Path $dir | Out-Null
         
-        Write-Output "Processing: $name"
+        Write-Output "Processing: $title"
         Write-Output "----------------------------------------------"
 
         # Execute command list
@@ -715,13 +717,77 @@ function LbfoDetail {
     #Get-VMSwitch | fl NetAdapterDescriptions
 }
 
+function QosDetail {
+    [CmdletBinding()]
+    Param(
+        [parameter(Mandatory=$true)] [String] $OutDir
+    )
+
+    $dir    = (Join-Path -Path $OutDir -ChildPath ("NetQoS"))
+    New-Item -ItemType directory -Path $dir | Out-Null
+
+    $file = "Get-NetQosDcbxSetting.txt"
+    $out  = (Join-Path -Path $dir -ChildPath $file)
+    [String []] $cmds = "Get-NetQosDcbxSetting",
+                        "Get-NetQosDcbxSetting | Format-List  -Property *",
+                        "Get-NetQosDcbxSetting | Format-Table -Property *  -AutoSize | Out-String -Width $columns"
+    ForEach($cmd in $cmds) {
+        ExecCommand -Command $cmd -Output $out
+    }
+
+    $file = "Get-NetQosFlowControl.txt"
+    $out  = (Join-Path -Path $dir -ChildPath $file)
+    [String []] $cmds = "Get-NetQosFlowControl",
+                        "Get-NetQosFlowControl | Format-List  -Property *",
+                        "Get-NetQosFlowControl | Format-Table -Property *  -AutoSize | Out-String -Width $columns"
+    ForEach($cmd in $cmds) {
+        ExecCommand -Command $cmd -Output $out
+    }
+
+    $file = "Get-NetQosPolicy.txt"
+    $out  = (Join-Path -Path $dir -ChildPath $file)
+    [String []] $cmds = "Get-NetQosPolicy",
+                        "Get-NetQosPolicy | Format-List  -Property *",
+                        "Get-NetQosPolicy | Format-Table -Property *  -AutoSize | Out-String -Width $columns"
+    ForEach($cmd in $cmds) {
+        ExecCommand -Command $cmd -Output $out
+    }
+
+    $file = "Get-NetQosTrafficClass.txt"
+    $out  = (Join-Path -Path $dir -ChildPath $file)
+    [String []] $cmds = "Get-NetQosTrafficClass",
+                        "Get-NetQosTrafficClass | Format-List  -Property *",
+                        "Get-NetQosTrafficClass | Format-Table -Property *  -AutoSize | Out-String -Width $columns"
+    ForEach($cmd in $cmds) {
+        ExecCommand -Command $cmd -Output $out
+    }
+}
+
+function SMBDetail {
+    [CmdletBinding()]
+    Param(
+        [parameter(Mandatory=$true)] [String] $OutDir
+    )
+
+    $dir    = (Join-Path -Path $OutDir -ChildPath ("SMB"))
+    New-Item -ItemType directory -Path $dir | Out-Null
+    
+    $file = "Get-SmbClientNetworkInterface.txt"
+    $out  = (Join-Path -Path $dir -ChildPath $file)
+    [String []] $cmds = "Get-SmbClientNetworkInterface",
+                        "Get-SmbClientNetworkInterface | Format-List  -Property *",
+                        "Get-SmbClientNetworkInterface | Format-Table -Property * -AutoSize | Out-String -Width $columns"
+    ForEach($cmd in $cmds) {
+        ExecCommand -Command $cmd -Output $out
+    }        
+}
+
 function PerfCounters {
     [CmdletBinding()]
     Param(
         [parameter(Mandatory=$true)] [String] $OutDir
     )
 
-    $vmname = $vm.name
     $dir    = (Join-Path -Path $OutDir -ChildPath ("PerfMon"))
     New-Item -ItemType directory -Path $dir | Out-Null
     
@@ -851,6 +917,9 @@ function Main {
 
     NetAdapterSummary -OutDir $workDir
     NetAdapterDetail  -OutDir $workDir
+
+    QosDetail         -OutDir $workDir
+    SMBDetail         -OutDir $workDir
 
     VMSummary         -OutDir $workDir
 
