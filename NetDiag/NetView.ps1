@@ -851,7 +851,14 @@ function PerfCounters {
 
     $dir    = (Join-Path -Path $OutDir -ChildPath ("PerfMon"))
     New-Item -ItemType directory -Path $dir | Out-Null
-    
+    <#
+    $make = "Processor"
+    $file = "PerfCounter_$make.txt"
+    $out  = (Join-Path -Path $dir -ChildPath $file)
+    $cmd  = "Get-Counter -Counter (Get-Counter -ListSet *'Processor'*).paths -ErrorAction SilentlyContinue | Format-List -Property *"
+    ExecCommand -Command ($cmd) -Output $out
+    #>
+
     $make = "VmSwitch"
     $file = "PerfCounter_$make.txt"
     $out  = (Join-Path -Path $dir -ChildPath $file)
@@ -899,6 +906,28 @@ function PerfCounters {
     $out  = (Join-Path -Path $dir -ChildPath $file)
     $cmd  = "Get-Counter -Counter (Get-Counter -ListSet *Emulex*).paths -ErrorAction SilentlyContinue | Format-List -Property *"
     ExecCommand -Command ($cmd) -Output $out
+}
+
+function NetshTrace {
+    [CmdletBinding()]
+    Param(
+        [parameter(Mandatory=$true)] [String] $OutDir
+    )
+
+    $dir    = (Join-Path -Path $OutDir -ChildPath ("Netsh"))
+    New-Item -ItemType directory -Path $dir | Out-Null
+
+    #NetSetup, binding map, setupact logs amongst other things needed by NDIS folks.
+
+    $file = "NetshTrace.txt"
+    $out  = (Join-Path -Path $dir -ChildPath $file)
+    [String []] $cmds = "netsh -?",
+                        "netsh trace show scenarios",
+                        "netsh trace show providers",
+                        "netsh trace  diagnose scenario=NetworkSnapshot mode=Telemetry saveSessionTrace=yes report=yes ReportFile=$dir\Snapshot.cab"
+    ForEach($cmd in $cmds) {
+        ExecCommand -Command $cmd -Output $out
+    }   
 }
 
 function Environment {
@@ -962,46 +991,31 @@ function Worker {
     clear
     $columns = 4096
 
-    $user        = [Environment]::UserName
-    $workDirName = "msdbg." + $env:computername
-    $baseDir     = "C:\Users\$user\Desktop\"
-    $workDir     = "$baseDir" + "$workDirName"
+    $user          = [Environment]::UserName
+    $workDirPrefix = "msdbg." + $env:computername
+    $baseDir       = "C:\Users\$user\Desktop\"
+    $workDir       = "$baseDir" + "$workDirPrefix"
 
-    EnvDestroy -OutDir $workDir
-    EnvCreate  -OutDir $workDir
+    EnvDestroy        -OutDir $workDir
+    EnvCreate         -OutDir $workDir
+
+    Environment                 -OutDir $workDir
+    PerfCounters                -OutDir $workDir
+    NetshTrace                  -OutDir $workDir
+    NetAdapterSummary           -OutDir $workDir
+    NetAdapterDetail            -OutDir $workDir
+    QosDetail                   -OutDir $workDir
+    SMBDetail                   -OutDir $workDir
+    VMSummary                   -OutDir $workDir
+    VMSwitchSummary             -OutDir $workDir
+    VMSwitchDetail              -OutDir $workDir  
+    VMNetworkAdapterSummary     -OutDir $workDir
+    VMNetworkAdapterDetail      -OutDir $workDir
+    LbfoSummary                 -OutDir $workDir
+    LbfoDetail                  -OutDir $workDir
+    IPinfo                      -OutDir $workDir
     
-    # Add try catch logic for inconsistent PS cmdlets implementation on -Named inputs
-    # https://www.leaseweb.com/labs/2014/01/print-full-exception-powershell-trycatch-block-using-format-list/
-
-    Environment       -OutDir $workDir
-    PerfCounters      -OutDir $workDir
-
-    NetAdapterSummary -OutDir $workDir
-    NetAdapterDetail  -OutDir $workDir
-
-    QosDetail         -OutDir $workDir
-    SMBDetail         -OutDir $workDir
-
-    VMSummary         -OutDir $workDir
-
-    VMSwitchSummary   -OutDir $workDir
-    VMSwitchDetail    -OutDir $workDir  
-
-    VMNetworkAdapterSummary -OutDir $workDir
-    VMNetworkAdapterDetail  -OutDir $workDir
-
-    LbfoSummary  -OutDir $workDir
-    LbfoDetail   -OutDir $workDir
-    
-    IPinfo -OutDir $workDir
-
-    #samples
-    #https://github.com/Microsoft/SDN/blob/master/SDNExpress/scripts/SDNExpress.ps1
-    #https://learn-powershell.net/2014/02/04/using-powershell-parameter-validation-to-make-your-day-easier/
-    #http://www.powershellmagazine.com/2013/12/09/secure-parameter-validation-in-powershell/
-    #https://msdn.microsoft.com/en-us/library/dd878340(v=vs.85).aspx
-
-    CreateZip -Src $workDir -Dest $baseDir -ZipName $workDirName
+    CreateZip -Src $workDir -Dest $baseDir -ZipName $workDirPrefix
 }
 
 function Main {
@@ -1012,3 +1026,14 @@ function Main {
 Main #Entry Point
 
 
+<# Referrence:
+    
+    # Add try catch logic for inconsistent PS cmdlets implementation on -Named inputs
+    # https://www.leaseweb.com/labs/2014/01/print-full-exception-powershell-trycatch-block-using-format-list/
+
+    #samples
+    #https://github.com/Microsoft/SDN/blob/master/SDNExpress/scripts/SDNExpress.ps1
+    #https://learn-powershell.net/2014/02/04/using-powershell-parameter-validation-to-make-your-day-easier/
+    #http://www.powershellmagazine.com/2013/12/09/secure-parameter-validation-in-powershell/
+    #https://msdn.microsoft.com/en-us/library/dd878340(v=vs.85).aspx
+#>
