@@ -1,0 +1,47 @@
+PS C:\CloudDeployment\DownloadedTools> $props | ft -Property displayname,registrykeyword,registryvalue
+ 
+displayname                         registrykeyword                     registryvalue
+-----------                         ---------------                     -------------
+Encapsulation Overhead              *EncapOverhead                      {160}
+Encapsulated Task Offload           *EncapsulatedPacketTaskOffload      {1}
+NVGRE Encapsulated Task Offload     *EncapsulatedPacketTaskOffloadNvgre {1}
+VXLAN Encapsulated Task Offload     *EncapsulatedPacketTaskOffloadVxlan {1}
+Flow Control                        *FlowControl                        {3}
+Header Data Split                   *HeaderDataSplit                    {0}
+Interrupt Moderation                *InterruptModeration                {1}
+IPV4 Checksum Offload               *IPChecksumOffloadIPv4              {3}
+Jumbo Packet                        *JumboPacket                        {1514}
+Large Send Offload V2 (IPv4)        *LsoV2IPv4                          {1}
+Large Send Offload V2 (IPv6)        *LsoV2IPv6                          {1}
+Maximum number of RSS Processors    *MaxRssProcessors                   {8}
+NetworkDirect Functionality         *NetworkDirect                      {1}
+Preferred NUMA node                 *NumaNodeId                         {65535}
+Maximum Number of RSS Queues        *NumRSSQueues                       {8}
+PacketDirect Functionality          *PacketDirect                       {1}
+Priority & Vlan Tag                 *PriorityVLANTag                    {3}
+Quality Of Service                  *QOS                                {1}
+Receive Buffers                     *ReceiveBuffers                     {4096}
+Receive Side Scaling                *RSS                                {1}
+RSS Base Processor Number           *RssBaseProcNumber                  {0}
+RSS Maximum Processor Number        *RssMaxProcNumber                   {63}
+Virtual Switch RSS                  *RssOnHostVPorts                    {1}
+RSS load balancing Profile          *RSSProfile                         {1}
+SR-IOV                              *Sriov                              {1}
+TCP/UDP Checksum Offload (IPv4)     *TCPUDPChecksumOffloadIPv4          {3}
+TCP/UDP Checksum Offload (IPv6)     *TCPUDPChecksumOffloadIPv6          {3}
+Send Buffers                        *TransmitBuffers                    {2048}
+Virtual Machine Queues              *VMQ                                {1}
+VMQ VLAN Filtering                  *VMQVlanFiltering                   {1}
+VXLAN UDP destination port number   *VxlanUDPPortNumber                 {4789}
+Ignore FCS errors                   IgnoreFCS                           {0}
+Force NDK to work with Global Pause NdkWithGlobalPause                  {1}
+Locally Administered Address        NetworkAddress
+Transmit Control Blocks             NumTcb                              {16}
+Receive Completion Method           RecvCompletionMethod                {1}
+R/RoCE Max Frame Size               RoceMaxFrameSize                    {0}
+Rx Interrupt Moderation Type        RxIntModeration                     {2}
+Rx Interrupt Moderation Profile     RxIntModerationProfile              {1}
+Number of Polls on Receive          ThreadPoll                          {10000}
+Tx Throughput Port Arbiter          TxBwPrecedence                      {0}
+Tx Interrupt Moderation Profile     TxIntModerationProfile              {1}
+VLAN ID                             VlanID                              {0}
