@@ -134,6 +134,114 @@ function NetAdapterDetail {
         Write-Output "Processing: $title"
         Write-Output "----------------------------------------------"
 
+        if ($nictype -eq "hNic") {
+            # Physical to Virtual Mapping.
+            # -----------------------------
+            # Get-NetAdapter uses:
+            #    Name                    : vEthernet (VMS-Ext-Public) 2
+            # Get-VMNetworkAdapter uses:
+            #    Name                    : VMS-Ext-Public
+            #
+            # Thus we need to match the corresponding devices via DeviceID such that 
+            # we can execute and capture the VMNetworkAdapter information for the hNIC at hand.
+            foreach($vmnic in Get-VMNetworkAdapter -ManagementOS) {
+                if ($nic.DeviceID -eq $vmnic.DeviceId) {
+                    $vmnicname = $vmnic.Name
+                }
+            }
+
+
+            # Execute command list
+            $file = "Get-VMNetworkAdapter.txt"
+            $out  = (Join-Path -Path $dir -ChildPath $file)
+            [String []] $cmds = "Get-VMNetworkAdapter -ManagementOS -VMNetworkAdapterName $vmnicname | Out-String -Width $columns",
+                                "Get-VMNetworkAdapter -ManagementOS -VMNetworkAdapterName $vmnicname | Format-List  -Property *",
+                                "Get-VMNetworkAdapter -ManagementOS -VMNetworkAdapterName $vmnicname | Format-Table -Property * -AutoSize | Out-String -Width $columns",
+                                "Get-VMNetworkAdapter -ManagementOS| Get-Member"
+            ForEach($cmd in $cmds) {
+                ExecCommand -Command ($cmd) -Output $out
+            }
+
+            # Execute command list
+            $file = "Get-VMNetworkAdapterAcl.txt"
+            $out  = (Join-Path -Path $dir -ChildPath $file)
+            [String []] $cmds = "Get-VMNetworkAdapterAcl -ManagementOS -VMNetworkAdapterName $vmnicname | Out-String -Width $columns",
+                                "Get-VMNetworkAdapterAcl -ManagementOS -VMNetworkAdapterName $vmnicname | Format-List  -Property *",
+                                "Get-VMNetworkAdapterAcl -ManagementOS -VMNetworkAdapterName $vmnicname | Format-Table -Property * -AutoSize | Out-String -Width $columns",
+                                "Get-VMNetworkAdapterAcl -ManagementOS | Get-Member"
+            ForEach($cmd in $cmds) {
+                ExecCommand -Command ($cmd) -Output $out
+            }
+            
+            # Execute command list
+            $file = "Get-VMNetworkAdapterExtendedAcl.txt"
+            $out  = (Join-Path -Path $dir -ChildPath $file)
+            [String []] $cmds = "Get-VMNetworkAdapterExtendedAcl -ManagementOS -VMNetworkAdapterName $vmnicname | Out-String -Width $columns",
+                                "Get-VMNetworkAdapterExtendedAcl -ManagementOS -VMNetworkAdapterName $vmnicname | Format-List  -Property *",
+                                "Get-VMNetworkAdapterExtendedAcl -ManagementOS -VMNetworkAdapterName $vmnicname | Format-Table -Property * -AutoSize | Out-String -Width $columns",
+                                "Get-VMNetworkAdapterExtendedAcl -ManagementOS | Get-Member"
+            ForEach($cmd in $cmds) {
+                ExecCommand -Command ($cmd) -Output $out
+            }
+
+            # Execute command list
+            $file = "Get-VMNetworkAdapterFailoverConfiguration.txt"
+            $out  = (Join-Path -Path $dir -ChildPath $file)
+            [String []] $cmds = "Get-VMNetworkAdapterFailoverConfiguration -ManagementOS -VMNetworkAdapterName $vmnicname | Out-String -Width $columns",
+                                "Get-VMNetworkAdapterFailoverConfiguration -ManagementOS -VMNetworkAdapterName $vmnicname | Format-List  -Property *",
+                                "Get-VMNetworkAdapterFailoverConfiguration -ManagementOS -VMNetworkAdapterName $vmnicname | Format-Table -Property * -AutoSize | Out-String -Width $columns",
+                                "Get-VMNetworkAdapterFailoverConfiguration -ManagementOS | Get-Member"
+            ForEach($cmd in $cmds) {
+                ExecCommand -Command ($cmd) -Output $out
+            }
+
+            # Execute command list
+            $file = "Get-VMNetworkAdapterIsolation.txt"
+            $out  = (Join-Path -Path $dir -ChildPath $file)
+            [String []] $cmds = "Get-VMNetworkAdapterIsolation -ManagementOS -VMNetworkAdapterName $vmnicname | Out-String -Width $columns",
+                                "Get-VMNetworkAdapterIsolation -ManagementOS -VMNetworkAdapterName $vmnicname | Format-List  -Property *",
+                                "Get-VMNetworkAdapterIsolation -ManagementOS -VMNetworkAdapterName $vmnicname | Format-Table -Property * -AutoSize | Out-String -Width $columns",
+                                "Get-VMNetworkAdapterIsolation -ManagementOS | Get-Member"
+            ForEach($cmd in $cmds) {
+                ExecCommand -Command ($cmd) -Output $out
+            }
+
+
+            # Execute command list
+            $file = "Get-VMNetworkAdapterRoutingDomainMapping.txt"
+            $out  = (Join-Path -Path $dir -ChildPath $file)
+            [String []] $cmds = "Get-VMNetworkAdapterRoutingDomainMapping -ManagementOS -VMNetworkAdapterName $vmnicname | Out-String -Width $columns",
+                                "Get-VMNetworkAdapterRoutingDomainMapping -ManagementOS -VMNetworkAdapterName $vmnicname | Format-List  -Property *",
+                                "Get-VMNetworkAdapterRoutingDomainMapping -ManagementOS -VMNetworkAdapterName $vmnicname | Format-Table -Property * -AutoSize | Out-String -Width $columns",
+                                "Get-VMNetworkAdapterRoutingDomainMapping -ManagementOS | Get-Member"
+            ForEach($cmd in $cmds) {
+                ExecCommand -Command ($cmd) -Output $out
+            }
+
+
+            # Execute command list
+            $file = "Get-VMNetworkAdapterTeamMapping.txt"
+            $out  = (Join-Path -Path $dir -ChildPath $file)
+            [String []] $cmds = "Get-VMNetworkAdapterTeamMapping -ManagementOS -VMNetworkAdapterName $vmnicname | Out-String -Width $columns",
+                                "Get-VMNetworkAdapterTeamMapping -ManagementOS -VMNetworkAdapterName $vmnicname | Format-List  -Property *",
+                                "Get-VMNetworkAdapterTeamMapping -ManagementOS -VMNetworkAdapterName $vmnicname | Format-Table -Property * -AutoSize | Out-String -Width $columns",
+                                "Get-VMNetworkAdapterTeamMapping -ManagementOS | Get-Member"
+            ForEach($cmd in $cmds) {
+                ExecCommand -Command ($cmd) -Output $out
+            }
+
+            # Execute command list
+            $file = "Get-VMNetworkAdapterVlan.txt"
+            $out  = (Join-Path -Path $dir -ChildPath $file)
+            [String []] $cmds = "Get-VMNetworkAdapterVlan -ManagementOS -VMNetworkAdapterName $vmnicname | Out-String -Width $columns",
+                                "Get-VMNetworkAdapterVlan -ManagementOS -VMNetworkAdapterName $vmnicname | Format-List  -Property *",
+                                "Get-VMNetworkAdapterVlan -ManagementOS -VMNetworkAdapterName $vmnicname | Format-Table -Property * -AutoSize | Out-String -Width $columns",
+                                "Get-VMNetworkAdapterVlan -ManagementOS | Get-Member"
+            ForEach($cmd in $cmds) {
+                ExecCommand -Command ($cmd) -Output $out
+            }  
+        }
+
         # Execute command list
         $file = "Get-NetAdapter.txt"
         $out  = (Join-Path -Path $dir -ChildPath $file)
@@ -610,7 +718,7 @@ function VMSwitchSummary {
     }
 }
 
-function VMNetworkAdapterSummary {
+function VMNetworkAdapterAll {
     [CmdletBinding()]
     Param(
         [parameter(Mandatory=$true)] [String] $OutDir
@@ -627,7 +735,7 @@ function VMNetworkAdapterSummary {
     }
 }
 
-function VMNetworkAdapterDetail {
+function VMNetworkAdapterPerVM {
     [CmdletBinding()]
     Param(
         [parameter(Mandatory=$true)] [String] $OutDir
@@ -1009,8 +1117,8 @@ function Worker {
     VMSummary                   -OutDir $workDir
     VMSwitchSummary             -OutDir $workDir
     VMSwitchDetail              -OutDir $workDir  
-    VMNetworkAdapterSummary     -OutDir $workDir
-    VMNetworkAdapterDetail      -OutDir $workDir
+    VMNetworkAdapterAll         -OutDir $workDir
+    VMNetworkAdapterPerVM       -OutDir $workDir
     LbfoSummary                 -OutDir $workDir
     LbfoDetail                  -OutDir $workDir
     IPinfo                      -OutDir $workDir
